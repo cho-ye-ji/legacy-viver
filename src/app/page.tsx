@@ -73,7 +73,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [inputCode]);
+  }, [inputCode, framework]);
 
   const handleCopy = useCallback(async () => {
     if (!convertedCode) return;
