@@ -14,18 +14,15 @@ export async function POST(request: NextRequest) {
     }
 
     const systemPrompt = SYSTEM_PROMPTS[framework as Framework] ?? SYSTEM_PROMPTS.react;
-    const targetLabel = framework === "vue"
-      ? "Vue 3 SFC (Composition API + TypeScript + Tailwind CSS)"
-      : "React 함수형 컴포넌트(TypeScript + Tailwind CSS)";
+    const userMessage = framework === "vue"
+      ? `Convert the following legacy code to a Vue 3 SFC (.vue file).\nDo NOT use React. Use <script setup lang="ts">, ref(), onMounted(), and Vue directives.\n\nLegacy code:\n${code}`
+      : `다음 레거시 코드를 React 함수형 컴포넌트(TypeScript + Tailwind CSS)로 변환해주세요:\n\n${code}`;
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: `다음 레거시 코드를 ${targetLabel}로 변환해주세요:\n\n${code}`,
-        },
+        { role: "user", content: userMessage },
       ],
       temperature: 0.3,
       max_tokens: 4096,
