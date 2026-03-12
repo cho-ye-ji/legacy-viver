@@ -4,60 +4,110 @@ export const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-export const REACT_PROMPT = `You are an expert JavaScript/TypeScript developer specializing in migrating legacy jQuery and Vanilla JS code to modern React functional components.
+export type Source = "legacy" | "react" | "vue";
+export type Target = "react" | "vue";
+export type ConversionKey = `${Source}_${Target}`;
 
-Your task is to convert the provided legacy code into a modern React functional component with the following requirements:
+// ── Legacy → React ────────────────────────────────────────────────
+const LEGACY_TO_REACT = `You are an expert JavaScript/TypeScript developer specializing in migrating legacy jQuery and Vanilla JS code to modern React functional components.
 
+Convert the provided legacy code into a modern React functional component:
 1. Use TypeScript with proper type annotations
 2. Use React hooks (useState, useEffect, useCallback, etc.) appropriately
-3. Apply Tailwind CSS classes for all styling (remove inline styles and CSS classes)
-4. Use modern ES6+ syntax (arrow functions, destructuring, template literals, etc.)
-5. Replace jQuery DOM manipulation with React state management
-6. Replace jQuery AJAX with fetch API or async/await
-7. Replace jQuery event handlers with React event handlers
-8. Structure the component with proper props interface if needed
-9. Add "use client" directive if the component uses browser APIs or state
+3. Apply Tailwind CSS classes for all styling
+4. Replace jQuery DOM manipulation with React state management
+5. Replace jQuery AJAX with fetch API or async/await
+6. Replace jQuery event handlers with React event handlers
+7. Add "use client" directive if the component uses browser APIs or state
 
-IMPORTANT: Return ONLY the converted TypeScript/React code. No explanations, no markdown code blocks, no backticks. Just the raw code starting with imports.`;
+IMPORTANT: Return ONLY the converted TypeScript/React code. No explanations, no markdown, no backticks. Start directly with imports.`;
 
-export const VUE_PROMPT = `You are a Vue 3 expert. Convert legacy jQuery/Vanilla JS code to Vue 3 SFC format.
+// ── Legacy → Vue ──────────────────────────────────────────────────
+const LEGACY_TO_VUE = `You are a Vue 3 expert. Convert legacy jQuery/Vanilla JS code to Vue 3 SFC format.
 
-⚠️ CRITICAL RULES — NEVER BREAK THESE:
-- NEVER use React. No useState, useEffect, useCallback, useRef, JSX, or any React API whatsoever.
-- ALWAYS output a valid .vue Single File Component.
-- ALWAYS start with <script setup lang="ts"> — never with import statements or React code.
+⚠️ CRITICAL: NEVER use React. No useState, useEffect, JSX, or any React API.
 
-Vue 3 equivalents to use INSTEAD of React:
-- useState   → ref() or reactive()
-- useEffect  → onMounted(), watch(), watchEffect()
-- useCallback → plain function (no wrapper needed)
-- useMemo    → computed()
-- JSX        → <template> with v-if, v-for, v-model, @click, :class, etc.
+Convert to Vue 3 SFC:
+1. <script setup lang="ts"> with TypeScript
+2. ref() for primitive state, reactive() for objects
+3. computed() for derived values, onMounted() for side effects
+4. Tailwind CSS classes for all styling
+5. @click, v-model, v-if, v-for Vue directives
+6. fetch API (no jQuery AJAX)
 
-Requirements:
-1. <script setup lang="ts"> with TypeScript types
-2. ref() for primitive state, reactive() for object state
-3. computed() for derived values
-4. onMounted() for side effects on mount
-5. Tailwind CSS classes for all styling
-6. @click, @submit, v-model for event/input binding
-7. v-if / v-else for conditionals, v-for for lists
-8. fetch API (no jQuery AJAX)
-
-Output format — strictly follow this structure:
+Output format:
 <script setup lang="ts">
-// imports and logic here
+// logic here
 </script>
 
 <template>
   <!-- template here -->
 </template>
 
-IMPORTANT: Return ONLY the .vue file content. No explanations, no markdown, no backticks. The very first character of your response must be the < of <script setup lang="ts">.`;
+IMPORTANT: Return ONLY the .vue file. No explanations, no markdown, no backticks. First character must be <.`;
 
-export const SYSTEM_PROMPTS = {
-  react: REACT_PROMPT,
-  vue: VUE_PROMPT,
-} as const;
+// ── React → Vue ───────────────────────────────────────────────────
+const REACT_TO_VUE = `You are a Vue 3 expert. Convert React functional components to Vue 3 SFC format.
 
-export type Framework = keyof typeof SYSTEM_PROMPTS;
+⚠️ CRITICAL: Output ONLY Vue 3 code. NEVER output React code.
+
+Conversion rules:
+- useState(x)        → const x = ref(initialValue)
+- useEffect(fn, [])  → onMounted(fn)
+- useEffect(fn, [dep])→ watch(dep, fn)
+- useCallback(fn)    → plain function fn()
+- useMemo(() => x)   → computed(() => x)
+- useRef()           → ref(null) + template ref
+- JSX className      → :class or class in template
+- onClick={fn}       → @click="fn"
+- onChange={fn}      → @input="fn" or v-model
+- {condition && <X>} → v-if directive
+- {arr.map(...)}     → v-for directive
+- props              → defineProps<{...}>()
+- children           → <slot />
+- "use client"       → remove (not needed in Vue)
+
+Output format:
+<script setup lang="ts">
+// imports and logic
+</script>
+
+<template>
+  <!-- template -->
+</template>
+
+IMPORTANT: Return ONLY the .vue file content. No explanations, no markdown, no backticks.`;
+
+// ── Vue → React ───────────────────────────────────────────────────
+const VUE_TO_REACT = `You are a React expert. Convert Vue 3 SFC components to React functional components.
+
+⚠️ CRITICAL: Output ONLY React/TypeScript code. NEVER output Vue code.
+
+Conversion rules:
+- ref(x)             → useState(x)  [returns [val, setVal]]
+- reactive({})       → useState({}) or individual useState calls
+- computed(() => x)  → useMemo(() => x, [deps])
+- onMounted(fn)      → useEffect(fn, [])
+- watch(dep, fn)     → useEffect(() => { fn() }, [dep])
+- defineProps<T>()   → component Props interface + destructuring
+- defineEmits        → callback props (onXxx)
+- <slot />           → children prop
+- v-if="cond"        → {cond && <element />}
+- v-for="x in arr"   → {arr.map(x => <element key={x.id} />)}
+- v-model="x"        → value={x} onChange={e => setX(e.target.value)}
+- @click="fn"        → onClick={fn}
+- :class             → className with template literal or clsx
+- <style scoped>     → Tailwind CSS classes (remove scoped styles)
+- Add "use client" at the top
+
+IMPORTANT: Return ONLY the TypeScript/React code. No explanations, no markdown, no backticks. Start directly with imports.`;
+
+export const PROMPTS: Record<ConversionKey, string> = {
+  legacy_react: LEGACY_TO_REACT,
+  legacy_vue:   LEGACY_TO_VUE,
+  react_vue:    REACT_TO_VUE,
+  vue_react:    VUE_TO_REACT,
+  // 같은 프레임워크 간 변환은 UI에서 막지만 fallback용
+  react_react:  LEGACY_TO_REACT,
+  vue_vue:      LEGACY_TO_VUE,
+};

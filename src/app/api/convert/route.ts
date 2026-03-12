@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { groq, SYSTEM_PROMPTS, type Framework } from "@/lib/groq";
+import { groq, PROMPTS, type Source, type Target } from "@/lib/groq";
+
+const SOURCE_LABEL: Record<Source, string> = {
+  legacy: "Legacy jQuery/Vanilla JS",
+  react:  "React (TypeScript)",
+  vue:    "Vue 3 SFC (TypeScript)",
+};
+
+const TARGET_LABEL: Record<Target, string> = {
+  react: "React 함수형 컴포넌트 (TypeScript + Tailwind CSS)",
+  vue:   "Vue 3 SFC (Composition API + TypeScript + Tailwind CSS)",
+};
 
 export async function POST(request: NextRequest) {
   try {
-    const { code, framework = "react" } = await request.json();
+    const { code, source = "legacy", target = "react" } = await request.json();
 
     if (!code || typeof code !== "string") {
       return NextResponse.json({ error: "코드를 입력해주세요." }, { status: 400 });
@@ -13,10 +24,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "GROQ_API_KEY가 설정되지 않았습니다." }, { status: 500 });
     }
 
-    const systemPrompt = SYSTEM_PROMPTS[framework as Framework] ?? SYSTEM_PROMPTS.react;
-    const userMessage = framework === "vue"
-      ? `Convert the following legacy code to a Vue 3 SFC (.vue file).\nDo NOT use React. Use <script setup lang="ts">, ref(), onMounted(), and Vue directives.\n\nLegacy code:\n${code}`
-      : `다음 레거시 코드를 React 함수형 컴포넌트(TypeScript + Tailwind CSS)로 변환해주세요:\n\n${code}`;
+    const key = `${source}_${target}` as keyof typeof PROMPTS;
+    const systemPrompt = PROMPTS[key] ?? PROMPTS.legacy_react;
+
+    const isVueTarget = target === "vue";
+    const userMessage = isVueTarget
+      ? `Convert the following ${SOURCE_LABEL[source as Source]} code to ${TARGET_LABEL.vue}.\nDo NOT use React. Output only .vue SFC format starting with <script setup lang="ts">.\n\nSource code:\n${code}`
+      : `다음 ${SOURCE_LABEL[source as Source]} 코드를 ${TARGET_LABEL.react}로 변환해주세요:\n\n${code}`;
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
