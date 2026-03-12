@@ -83,11 +83,11 @@ function WordDiff({ oldLine, newLine, isDark }: { oldLine: string; newLine: stri
           className={
             type === "old"
               ? isDark
-                ? "bg-red-800 text-red-100 rounded-sm px-0.5"
-                : "bg-red-300 text-red-900 rounded-sm px-0.5"
+                ? "bg-red-900/70 text-red-200 rounded-sm px-0.5"
+                : "bg-red-200/70 text-red-800 rounded-sm px-0.5"
               : isDark
-                ? "bg-green-800 text-green-100 rounded-sm px-0.5"
-                : "bg-green-300 text-green-900 rounded-sm px-0.5"
+                ? "bg-green-900/70 text-green-200 rounded-sm px-0.5"
+                : "bg-green-200/70 text-green-800 rounded-sm px-0.5"
           }
         >
           {part.value}
@@ -116,17 +116,17 @@ export default function DiffViewer({ oldCode, newCode, isDark = false }: DiffVie
   const th = {
     wrap:       isDark ? "bg-zinc-950 border-zinc-700 text-zinc-300" : "bg-white border-slate-200 text-zinc-700",
     header:     isDark ? "bg-zinc-800 border-zinc-700 text-zinc-400" : "bg-slate-100 border-slate-200 text-zinc-500",
-    lineAdded:  isDark ? "bg-green-950 border-l-2 border-green-600" : "bg-green-50 border-l-2 border-green-500",
-    lineRemoved:isDark ? "bg-red-950 border-l-2 border-red-700"     : "bg-red-50 border-l-2 border-red-400",
-    lineNormal: isDark ? "bg-zinc-950"                               : "bg-white",
-    gutterAdded:  isDark ? "bg-green-900/60 text-green-400 select-none" : "bg-green-100 text-green-700 select-none",
-    gutterRemoved:isDark ? "bg-red-900/60 text-red-400 select-none"    : "bg-red-100 text-red-700 select-none",
-    gutterNormal: isDark ? "bg-zinc-900 text-zinc-600 select-none"     : "bg-slate-50 text-zinc-400 select-none",
-    numAdded:   isDark ? "text-green-500" : "text-green-600",
-    numRemoved: isDark ? "text-red-500"   : "text-red-500",
+    lineAdded:  isDark ? "bg-green-950/60 border-l-2 border-green-800"  : "bg-[#f2faf4] border-l-2 border-[#a3c9ac]",
+    lineRemoved:isDark ? "bg-red-950/60 border-l-2 border-red-900/80"  : "bg-[#fdf4f4] border-l-2 border-[#d4a8a8]",
+    lineNormal: isDark ? "bg-zinc-950"                                  : "bg-white",
+    gutterAdded:  isDark ? "bg-green-950/40 text-green-600 select-none" : "bg-[#e8f5eb] text-[#5a8f65] select-none",
+    gutterRemoved:isDark ? "bg-red-950/40 text-red-700 select-none"     : "bg-[#faeaea] text-[#b07070] select-none",
+    gutterNormal: isDark ? "bg-zinc-900 text-zinc-600 select-none"      : "bg-slate-50 text-zinc-400 select-none",
+    numAdded:   isDark ? "text-green-700" : "text-[#5a8f65]",
+    numRemoved: isDark ? "text-red-800"   : "text-[#b07070]",
     numNormal:  isDark ? "text-zinc-600"  : "text-zinc-400",
-    codeAdded:  isDark ? "text-green-200" : "text-green-900",
-    codeRemoved:isDark ? "text-red-200"   : "text-red-800",
+    codeAdded:  isDark ? "text-green-300/80" : "text-[#2d5c38]",
+    codeRemoved:isDark ? "text-red-300/80"   : "text-[#7a3535]",
     codeNormal: isDark ? "text-zinc-300"  : "text-zinc-700",
     divider:    isDark ? "border-zinc-700" : "border-slate-200",
     emptyCell:  isDark ? "bg-zinc-900/50" : "bg-slate-50/80",
@@ -208,16 +208,16 @@ export default function DiffViewer({ oldCode, newCode, isDark = false }: DiffVie
 
       {/* 범례 */}
       <div className={`flex gap-4 px-4 py-2 border-b text-xs ${th.header} ${th.divider}`}>
-        <span className={`flex items-center gap-1.5 ${isDark ? "text-green-400" : "text-green-700"}`}>
-          <span className={`inline-block w-3 h-3 rounded-sm ${isDark ? "bg-green-900 border border-green-600" : "bg-green-100 border border-green-400"}`} />
+        <span className={`flex items-center gap-1.5 ${isDark ? "text-green-600" : "text-[#5a8f65]"}`}>
+          <span className={`inline-block w-3 h-3 rounded-sm ${isDark ? "bg-green-950/60 border border-green-800" : "bg-[#f2faf4] border border-[#a3c9ac]"}`} />
           추가된 코드
         </span>
-        <span className={`flex items-center gap-1.5 ${isDark ? "text-red-400" : "text-red-600"}`}>
-          <span className={`inline-block w-3 h-3 rounded-sm ${isDark ? "bg-red-900 border border-red-700" : "bg-red-50 border border-red-400"}`} />
+        <span className={`flex items-center gap-1.5 ${isDark ? "text-red-700" : "text-[#b07070]"}`}>
+          <span className={`inline-block w-3 h-3 rounded-sm ${isDark ? "bg-red-950/60 border border-red-900/80" : "bg-[#fdf4f4] border border-[#d4a8a8]"}`} />
           삭제된 코드
         </span>
-        <span className={`flex items-center gap-1.5 ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
-          <span className={`inline-block w-3 h-3 rounded-sm ${isDark ? "bg-green-800 border border-green-500" : "bg-green-300 border border-green-500"}`} />
+        <span className={`flex items-center gap-1.5 ${isDark ? "text-zinc-500" : "text-zinc-400"}`}>
+          <span className={`inline-block w-3 h-3 rounded-sm ${isDark ? "bg-green-900/70 border border-green-900/70" : "bg-green-200/70 border border-green-200/70"}`} />
           변경된 단어
         </span>
       </div>
