@@ -6,6 +6,7 @@ interface DiffViewerProps {
   oldCode: string;
   newCode: string;
   isDark?: boolean;
+  rightTitle?: string;
 }
 
 type LineType = "added" | "removed" | "unchanged";
@@ -98,7 +99,7 @@ function WordDiff({ oldLine, newLine, isDark }: { oldLine: string; newLine: stri
   return { oldJsx: renderParts(oldParts, "old"), newJsx: renderParts(newParts, "new") };
 }
 
-export default function DiffViewer({ oldCode, newCode, isDark = false }: DiffViewerProps) {
+export default function DiffViewer({ oldCode, newCode, isDark = false, rightTitle = "변환 결과 (React + TypeScript)" }: DiffViewerProps) {
   const lines = computeDiff(oldCode, newCode);
 
   // 제거된 줄과 추가된 줄을 매칭해서 단어 diff 적용
@@ -202,7 +203,7 @@ export default function DiffViewer({ oldCode, newCode, isDark = false }: DiffVie
         </div>
         <div className="px-4 py-2.5 flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block" />
-          변환 결과 (React + TypeScript)
+          {rightTitle}
         </div>
       </div>
 

@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { Zap, Code2, ArrowRight, RotateCcw, Copy, Check, AlertCircle, Sparkles, Sun, Moon } from "lucide-react";
 import DiffViewer from "@/components/DiffViewer";
+import type { Framework } from "@/lib/groq";
 
 const EXAMPLE_CODE = `// jQuery 예시 코드
 $(document).ready(function() {
@@ -42,6 +43,7 @@ type ViewMode = "diff" | "code";
 
 export default function Home() {
   const [isDark, setIsDark] = useState(false);
+  const [framework, setFramework] = useState<Framework>("react");
   const [inputCode, setInputCode] = useState("");
   const [convertedCode, setConvertedCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +63,7 @@ export default function Home() {
       const response = await fetch("/api/convert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: inputCode }),
+        body: JSON.stringify({ code: inputCode, framework }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "변환 중 오류가 발생했습니다.");
@@ -176,6 +178,46 @@ export default function Home() {
 
         {!convertedCode ? (
           <div className="flex flex-col gap-4">
+            {/* 프레임워크 선택 */}
+            <div className={`flex items-center gap-1 p-1 rounded-xl border w-fit ${isDark ? "bg-zinc-900 border-zinc-700" : "bg-slate-100 border-slate-200"}`}>
+              <button
+                onClick={() => setFramework("react")}
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  framework === "react"
+                    ? isDark
+                      ? "bg-zinc-800 text-[#61dafb] border border-[#61dafb]/30 shadow-sm"
+                      : "bg-white text-[#087ea4] border border-[#61dafb]/40 shadow-sm"
+                    : isDark ? "text-zinc-500 hover:text-zinc-300" : "text-zinc-400 hover:text-zinc-600"
+                }`}
+              >
+                <svg viewBox="-11.5 -10.232 23 20.463" className="w-4 h-4" fill="currentColor">
+                  <circle r="2.05" />
+                  <g stroke="currentColor" strokeWidth="1" fill="none">
+                    <ellipse rx="11" ry="4.2" />
+                    <ellipse rx="11" ry="4.2" transform="rotate(60)" />
+                    <ellipse rx="11" ry="4.2" transform="rotate(120)" />
+                  </g>
+                </svg>
+                React
+              </button>
+              <button
+                onClick={() => setFramework("vue")}
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  framework === "vue"
+                    ? isDark
+                      ? "bg-zinc-800 text-[#42b883] border border-[#42b883]/30 shadow-sm"
+                      : "bg-white text-[#2d7a5f] border border-[#42b883]/40 shadow-sm"
+                    : isDark ? "text-zinc-500 hover:text-zinc-300" : "text-zinc-400 hover:text-zinc-600"
+                }`}
+              >
+                <svg viewBox="0 0 261.76 226.69" className="w-4 h-4" fill="currentColor">
+                  <path d="M161.096.001l-30.225 52.351L100.647.001H-.005l130.876 226.689L261.749.001z" opacity=".7" />
+                  <path d="M161.096.001l-30.225 52.351L100.647.001H52.346l78.523 136.01L209.398.001z" />
+                </svg>
+                Vue 3
+              </button>
+            </div>
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Code2 className={`w-4 h-4 ${t.icon}`} />
@@ -223,7 +265,7 @@ export default function Home() {
               ) : (
                 <>
                   <ArrowRight className="w-4 h-4" />
-                  React로 변환하기
+                  {framework === "vue" ? "Vue 3" : "React"}로 변환하기
                 </>
               )}
             </button>
@@ -263,7 +305,12 @@ export default function Home() {
             </div>
 
             {viewMode === "diff" ? (
-              <DiffViewer oldCode={inputCode} newCode={convertedCode} isDark={isDark} />
+              <DiffViewer
+                oldCode={inputCode}
+                newCode={convertedCode}
+                isDark={isDark}
+                rightTitle={framework === "vue" ? "변환 결과 (Vue 3 + TypeScript)" : "변환 결과 (React + TypeScript)"}
+              />
             ) : (
               <pre className={`border rounded-xl p-5 overflow-auto text-sm leading-relaxed max-h-[600px] font-mono ${t.codePre}`}>
                 {convertedCode}
